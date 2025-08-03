@@ -26,7 +26,7 @@ export class ArticleService {
    * 创建文章
    * @param article
    */
-  async create(article: Partial<Article>): Promise<Article> {
+  async create(article: Partial<Article & { categoryId: string }>): Promise<Article> {
     const { title } = article;
     const exist = await this.articleRepository.findOne({ where: { title } });
 
@@ -34,7 +34,7 @@ export class ArticleService {
       throw new HttpException('文章标题已存在', HttpStatus.BAD_REQUEST);
     }
 
-    let { tags, category, status } = article; // eslint-disable-line prefer-const
+    let { tags, categoryId, status } = article;
 
     if (status === 'publish') {
       Object.assign(article, {
@@ -43,7 +43,7 @@ export class ArticleService {
     }
 
     tags = await this.tagService.findByIds(('' + tags).split(','));
-    const existCategory = await this.categoryService.findById(category);
+    const existCategory = await this.categoryService.findById(categoryId);
     const newArticle = await this.articleRepository.create({
       ...article,
       category: existCategory,
@@ -57,7 +57,7 @@ export class ArticleService {
   /**
    * 获取所有文章
    */
-  async findAll(queryParams): Promise<[Article[], number]> {
+  async findAll(queryParams): Promise<Article[]> {
     const query = this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.tags', 'tag')
@@ -87,7 +87,7 @@ export class ArticleService {
       }
     });
 
-    return [data, total];
+    return data;
   }
 
   /**
