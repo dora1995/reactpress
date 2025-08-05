@@ -57,7 +57,7 @@ export class ArticleService {
   /**
    * 获取所有文章
    */
-  async findAll(queryParams): Promise<Article[]> {
+  async findAll(queryParams): Promise<{data: Article[], total: number}> {
     const query = this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.tags', 'tag')
@@ -87,7 +87,7 @@ export class ArticleService {
       }
     });
 
-    return data;
+    return {data, total};
   }
 
   /**
@@ -95,11 +95,11 @@ export class ArticleService {
    * @param category
    * @param queryParams
    */
-  async findArticlesByCategory(category, queryParams) {
+  async findArticlesByCategory(category, queryParams): Promise<{data: Article[], total: number}> {
     const query = this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
-      .where('category.value=:value', { value: category })
+      .where('category.id=:id', { id: category })
       .orderBy('article.publishAt', 'DESC');
 
     const { page = 1, pageSize = 12, status } = queryParams;
@@ -118,7 +118,7 @@ export class ArticleService {
       }
     });
 
-    return [data, total];
+    return {data, total};
   }
 
   /**
@@ -126,7 +126,7 @@ export class ArticleService {
    * @param tag
    * @param queryParams
    */
-  async findArticlesByTag(tag, queryParams) {
+  async findArticlesByTag(tag, queryParams): Promise<{data: Article[], total: number}> {
     const query = this.articleRepository
       .createQueryBuilder('article')
       .innerJoinAndSelect('article.tags', 'tag', 'tag.value=:value', {
@@ -150,7 +150,7 @@ export class ArticleService {
       }
     });
 
-    return [data, total];
+    return {data, total};
   }
 
   /**
@@ -162,7 +162,7 @@ export class ArticleService {
       order: { publishAt: 'DESC' },
     });
 
-    return data.filter((d) => !d.needPassword);
+    return {data: data.filter((d) => !d.needPassword), total: data.length};
   }
 
   /**

@@ -53,8 +53,6 @@ export class CategoryService {
     });
 
     return data;
-
-    // return this.categoryRepository.find({ order: { createAt: 'ASC' } });
   }
 
   /**

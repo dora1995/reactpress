@@ -19,7 +19,7 @@ export class User {
   }
 
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @ApiProperty()
   @Column({ length: 500 })

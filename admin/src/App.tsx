@@ -12,9 +12,11 @@ import TagList from './pages/Tag/TagList';
 import PageList from './pages/Page/PageList';
 import PageEditor from './pages/Page/PageEditor';
 import CommentList from './pages/Comment/CommentList';
-import FileList from './pages/File/FileList';
 import UserList from './pages/User/UserList';
 import Settings from './pages/Settings';
+import MembershipTypeList from './pages/MembershipType/MembershipTypeList';
+import TransactionList from './pages/Transaction/TransactionList';
+import PointsList from './pages/Points/PointsList';
 
 // 检查是否已登录
 const isAuthenticated = () => {
@@ -61,6 +63,13 @@ function App() {
                     <Route path="/comments" element={<CommentList />} />
                     {/* 用户管理 */}
                     <Route path="/users" element={<UserList />} />
+                    {/* 会员管理 */}
+                    <Route path="/membership-types" element={<MembershipTypeList />} />
+                    <Route path="/transactions" element={<TransactionList />} />
+                    
+                    {/* 积分管理 */}
+                    <Route path="/points" element={<PointsList />} />
+                    
                     {/* 系统设置 */}
                     <Route path="/settings" element={<Settings />} />
                   </Routes>

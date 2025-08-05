@@ -83,6 +83,8 @@ const ArticleEditor: React.FC = () => {
         needPassword: article.needPassword,
         password: '',
         isCommentable: article.isCommentable,
+        needVip: article.needVip,
+        points: article.points,
         publishAt: article.publishAt ? dayjs(article.publishAt) : null,
       });
     } catch (error) {
@@ -192,6 +194,8 @@ const ArticleEditor: React.FC = () => {
                 isRecommended: false,
                 needPassword: false,
                 isCommentable: true,
+                needVip: false,
+                points: 0,
               }}
             >
               <Form.Item
@@ -304,6 +308,14 @@ const ArticleEditor: React.FC = () => {
 
                 <Form.Item name="isCommentable" valuePropName="checked">
                   <Switch /> 允许评论
+                </Form.Item>
+
+                <Form.Item name="needVip" valuePropName="checked">
+                  <Switch /> 需要会员可阅读
+                </Form.Item>
+
+                <Form.Item name="points" label="消耗积分">
+                  <Input type="number" min={0} placeholder="阅读需要消耗的积分" />
                 </Form.Item>
 
                 <Form.Item name="needPassword" valuePropName="checked">

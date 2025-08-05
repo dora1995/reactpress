@@ -61,8 +61,8 @@ const ArticleList: React.FC = () => {
       if (categoryFilter) params.categoryId = categoryFilter;
 
       const response = await articleAPI.getArticles(params);
-      setArticles(response);
-      setTotal(response.length);
+      setArticles(response.data);
+      setTotal(response.total);
     } catch (error) {
       message.error('获取文章列表失败');
     } finally {

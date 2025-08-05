@@ -1,160 +1,114 @@
-import React, { useState } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Button, Space, Typography } from 'antd';
+import React from 'react';
+import { Layout, Menu } from 'antd';
 import {
   DashboardOutlined,
-  FileTextOutlined,
-  TagsOutlined,
-  FolderOutlined,
-  CommentOutlined,
-  FileImageOutlined,
+  FileOutlined,
   UserOutlined,
+  TagOutlined,
+  CommentOutlined,
   SettingOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  LogoutOutlined,
+  CrownOutlined,
+  TransactionOutlined,
+  GiftOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
-const { Header, Sider, Content } = Layout;
-const { Title } = Typography;
+const { Header, Content, Sider } = Layout;
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-}
+const menuItems = [
+  {
+    key: 'dashboard',
+    icon: <DashboardOutlined />,
+    label: <Link to="/">仪表盘</Link>,
+  },
+  {
+    key: 'articles',
+    icon: <FileOutlined />,
+    label: <Link to="/articles">文章管理</Link>,
+  },
+  {
+    key: 'categories',
+    icon: <TagOutlined />,
+    label: <Link to="/categories">分类管理</Link>,
+  },
+  {
+    key: 'tags',
+    icon: <TagOutlined />,
+    label: <Link to="/tags">标签管理</Link>,
+  },
+  {
+    key: 'comments',
+    icon: <CommentOutlined />,
+    label: <Link to="/comments">评论管理</Link>,
+  },
+  {
+    key: 'users',
+    icon: <UserOutlined />,
+    label: <Link to="/users">用户管理</Link>,
+  },
+  {
+    key: 'membership',
+    icon: <CrownOutlined />,
+    label: '会员管理',
+    children: [
+      {
+        key: 'membership-types',
+        label: <Link to="/membership-types">会员类型</Link>,
+      },
+      {
+        key: 'transactions',
+        icon: <TransactionOutlined />,
+        label: <Link to="/transactions">交易记录</Link>,
+      },
+    ],
+  },
+  {
+    key: 'points',
+    icon: <GiftOutlined />,
+    label: <Link to="/points">积分管理</Link>,
+  },
+  {
+    key: 'settings',
+    icon: <SettingOutlined />,
+    label: <Link to="/settings">系统设置</Link>,
+  },
+];
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-  const [collapsed, setCollapsed] = useState(false);
-  const navigate = useNavigate();
+const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
-
-  // 菜单项配置
-  const menuItems = [
-    {
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: '仪表盘',
-    },
-
-    {
-      key: '/contentManagement',
-      icon: <FileImageOutlined />,
-      label: '内容管理',
-      children: [
-        { key: '/categories', label: '分类管理' },
-        { key: '/tags', label: '标签管理' },
-        { key: '/articles', label: '文章管理' },
-        { key: '/pages', label: '页面管理' },
-        { key: '/comments', label: '评论管理' },
-      ],
-    },
-    {
-      key: '/users',
-      icon: <UserOutlined />,
-      label: '用户管理',
-    },
-    {
-      key: '/settings',
-      icon: <SettingOutlined />,
-      label: '系统设置',
-    },
-  ];
-
-  // 处理菜单点击
-  const handleMenuClick = ({ key }: { key: string }) => {
-    navigate(key);
-  };
-
-  // 处理登出
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-
-  // 获取当前用户信息
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-
-  // 用户下拉菜单
-  const userMenuItems = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: '个人资料',
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: '设置',
-      onClick: () => navigate('/settings'),
-    },
-    {
-      type: 'divider' as const,
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '退出登录',
-      onClick: handleLogout,
-    },
-  ];
+  const path = location.pathname.split('/')[1] || 'dashboard';
+  
+  // 处理特殊的菜单项选中状态
+  let selectedKey = path;
+  if (path === 'membership-types' || path === 'transactions') {
+    selectedKey = 'membership';
+  }
 
   return (
-    <Layout className="admin-layout">
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        className="admin-sider"
-        width={240}
-      >
-        <div className="flex items-center justify-center h-16 border-b border-gray-700">
-          <Title level={4} className="text-white m-0">
-            {collapsed ? 'RP' : 'ReactPress'}
-          </Title>
-        </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          defaultOpenKeys={['/articles', '/pages']}
-          items={menuItems}
-          onClick={handleMenuClick}
-          className="border-r-0"
-        />
-      </Sider>
-
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header className="flex items-center px-6">
+        <div className="text-white text-xl font-bold">管理后台</div>
+      </Header>
       <Layout>
-        <Header className="admin-header px-4 flex items-center justify-between">
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-lg"
+        <Sider width={200} className="bg-white">
+          <Menu
+            mode="inline"
+            selectedKeys={[selectedKey]}
+            style={{ height: '100%', borderRight: 0 }}
+            items={menuItems}
           />
-
-          <Space>
-            <Dropdown
-              menu={{ items: userMenuItems }}
-              placement="bottomRight"
-              arrow
-            >
-              <Space className="cursor-pointer hover:bg-gray-100 px-3 py-2 rounded">
-                <Avatar
-                  size="small"
-                  src={currentUser.avatar}
-                  icon={<UserOutlined />}
-                />
-                <span>{currentUser.name || '管理员'}</span>
-              </Space>
-            </Dropdown>
-          </Space>
-        </Header>
-
-        <Content className="admin-content">
-          <div className="content-wrapper">
+        </Sider>
+        <Layout style={{ padding: '0 24px 24px' }}>
+          <Content
+            style={{
+              padding: 24,
+              margin: 0,
+              minHeight: 280,
+            }}
+          >
             {children}
-          </div>
-        </Content>
+          </Content>
+        </Layout>
       </Layout>
     </Layout>
   );

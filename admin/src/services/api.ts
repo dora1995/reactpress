@@ -40,7 +40,7 @@ export const userAPI = {
 
 // Article API
 export const articleAPI = {
-  getArticles: (params?: PaginationParams): Promise<Article[]> =>
+  getArticles: (params?: PaginationParams): Promise<PaginationResponse<Article>> =>
     api.get('/article', { params }),
   
   getArticleById: (id: string, status?: string): Promise<Article> =>

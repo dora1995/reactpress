@@ -82,6 +82,14 @@ export class Article {
   isCommentable: boolean;
 
   @ApiProperty()
+  @Column({ type: 'boolean', default: false })
+  needVip: boolean; // 是否需要会员才能阅读
+
+  @ApiProperty()
+  @Column({ type: 'int', default: 0 })
+  points: number; // 阅读需要消耗的积分
+
+  @ApiProperty()
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   publishAt: Date; // 发布日期
 

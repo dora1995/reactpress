@@ -42,6 +42,18 @@ import { UserModule } from './modules/user/user.module';
 import { View } from './modules/view/view.entity';
 // 访问统计模块
 import { ViewModule } from './modules/view/view.module';
+// 会员模块
+import { MembershipType } from './modules/membership/membership-type.entity';
+import { UserMembership } from './modules/membership/user-membership.entity';
+import { MembershipTypeModule } from './modules/membership/membership-type.module';
+import { UserMembershipModule } from './modules/membership/user-membership.module';
+// 积分模块
+import { UserPoints } from './modules/points/user-points.entity';
+import { PointsTransaction } from './modules/points/points-transaction.entity';
+import { UserPointsModule } from './modules/points/user-points.module';
+// 交易模块
+import { MembershipTransaction } from './modules/transaction/membership-transaction.entity';
+import { MembershipTransactionModule } from './modules/transaction/membership-transaction.module';
 
 @Module({
   imports: [
@@ -51,7 +63,10 @@ import { ViewModule } from './modules/view/view.module';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         type: 'mysql',
-        entities: [User, File, Knowledge, Article, Category, Tag, Comment, Setting, SMTP, Page, View, Search],
+        entities: [
+          User, File, Knowledge, Article, Category, Tag, Comment, Setting, SMTP, Page, View, Search,
+          MembershipType, UserMembership, UserPoints, PointsTransaction, MembershipTransaction
+        ],
         host: configService.get('DB_HOST', '0.0.0.0'),
         port: configService.get<number>('DB_PORT', 3306),
         username: configService.get('DB_USER', 'root'),
@@ -59,7 +74,7 @@ import { ViewModule } from './modules/view/view.module';
         database: configService.get('DB_DATABASE', 'reactpress'),
         charset: 'utf8mb4',
         timezone: '+08:00',
-        synchronize: true,
+        synchronize: true, // 开发环境使用，生产环境请关闭
       }),
     }),
     UserModule,
@@ -75,6 +90,10 @@ import { ViewModule } from './modules/view/view.module';
     PageModule,
     ViewModule,
     SearchModule,
+    MembershipTypeModule,
+    UserMembershipModule,
+    UserPointsModule,
+    MembershipTransactionModule,
   ],
   controllers: [],
   providers: [],
