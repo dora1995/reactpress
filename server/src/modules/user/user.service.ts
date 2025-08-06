@@ -123,7 +123,13 @@ export class UserService {
   async loginWithoutPasswd(user: Partial<User>): Promise<User> {
     const { name } = user;
     const existUser = await this.userRepository.findOne({ where: { name } });
-
+    if (!existUser) {
+      throw new HttpException(
+        '用户不存在',
+        // tslint:disable-next-line: trailing-comma
+        HttpStatus.BAD_REQUEST
+      );
+    }
     if (existUser.status === 'locked') {
       throw new HttpException(
         '用户已锁定，无法登录',
@@ -131,9 +137,7 @@ export class UserService {
         HttpStatus.BAD_REQUEST
       );
     }
-
     delete existUser.password;
-
     return existUser;
   }
 

@@ -55,6 +55,44 @@ export class AuthService {
     return user;
   }
 
+  async loginOrRegisterWithEmail(email: string) {
+    try {
+      // 检查用户是否已存在
+      const existingUser = await this.userService.findByConditions({ email });
+      console.log('existingUser', existingUser)
+      if (existingUser) {
+        // 用户存在，直接登录
+        return this.loginWithoutPasswd({ name: existingUser.name });
+      }
+
+      // 用户不存在，创建新用户
+      const name = uniqueid() // 随机生成用户名
+      const password = `${uniqueid()}_${email}`; // 生成随机密码
+      await this.userService.createUser({
+        name,
+        email,
+        password,
+        type: 'email',
+      });
+      const emailMessage = {
+        to: email,
+        subject: '欢迎注册跨境鱼友圈',
+        text: `您好，欢迎注册跨境鱼友圈。您的账号信息如下：用户名：${name}，密码：${password}，请及时登录系统修改密码。`,
+      };
+      // 发送邮箱通知
+      this.smtpService.create(emailMessage).catch(() => {
+        console.log(`通知用户${name}（${email}），但发送邮件通知失败`);
+      });
+      // 返回登录信息
+      return this.loginWithoutPasswd({ name });
+    } catch (error) {
+      throw new HttpException(
+        error.message || '登录/注册失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async loginWithGithub(code) {
     if (!code) {
       throw new HttpException('请输入Gitub授权码', HttpStatus.BAD_REQUEST);

@@ -11,9 +11,7 @@ export const metadata: Metadata = {
 
 // 获取分类列表
 async function getCategories(): Promise<Category[]> {
-  const res = await fetch(`${process.env.API_URL}/api/category`, {
-    // next: { revalidate: 3600 }, // 1小时缓存
-  });
+  const res = await fetch(`${process.env.API_URL}/api/category`);
   const data = await res.json()
   console.log('getCategories', data)
   return data.data
@@ -25,9 +23,7 @@ async function getArticlesByCategory(categoryId?: string): Promise<{data: Articl
     ? `${process.env.API_URL}/api/article/category/${categoryId}?page=1&pageSize=100&status=publish`
     : `${process.env.API_URL}/api/article?page=1&pageSize=100&status=publish`;
   
-  const res = await fetch(url, {
-    // next: { revalidate: 3600 }, // 1小时缓存
-  });
+  const res = await fetch(url);
   const data = await res.json()
   console.log('getArticlesByCategory', data)
   return data.data
@@ -87,7 +83,7 @@ export default async function ArticlesPage({
             {articles.map((article) => (
               <article
                 key={article.id}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col"
+                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col relative"
               >
                 <div className="p-4 flex flex-col flex-1">
                   <h2 className="text-lg font-semibold mb-3 line-clamp-2 hover:text-blue-600">
@@ -100,15 +96,15 @@ export default async function ArticlesPage({
                     <span>{new Date(article.publishAt).toLocaleDateString()}</span>
                     <div className="flex items-center gap-3">
                       <span>阅读 {article.views}</span>
-                      {article.needVip && (
-                        <span className="text-yellow-600">会员专享</span>
-                      )}
-                      {article.points > 0 && (
-                        <span className="text-green-600">{article.points} 积分</span>
-                      )}
                     </div>
                   </div>
                 </div>
+                {article.needVip && (
+                  <div className="text-white absolute top-0 -right-2 bg-yellow-600 rounded-full px-2 py-1 text-xs">会员专享</div>
+                )}
+                {article.points > 0 && (
+                  <div className="text-white absolute top-0 -right-2 bg-green-600 rounded-full px-2 py-1 text-xs">{article.points} 积分</div>
+                )}
               </article>
             ))}
           </div>

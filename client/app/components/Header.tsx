@@ -1,12 +1,19 @@
 'use client';
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 // 定义导航项的类型
 interface NavItem {
   title: string;
   href: string;
+}
+
+// 定义用户信息类型
+interface UserInfo {
+  name: string;
+  email: string;
 }
 
 // 导航菜单数据
@@ -20,6 +27,17 @@ export const NAV_ITEMS: NavItem[] = [
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // 在组件加载时从localStorage获取用户信息
+  useEffect(() => {
+    const storedUserInfo = localStorage.getItem('userInfo');
+    if (storedUserInfo) {
+      setUserInfo(JSON.parse(storedUserInfo));
+    }
+  }, []);
 
   // 判断当前路径是否匹配导航项
   const isActive = (href: string) => {
@@ -27,6 +45,15 @@ export default function Header() {
       return pathname === href;
     }
     return pathname.startsWith(href);
+  };
+
+  // 处理退出登录
+  const handleLogout = () => {
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('token');
+    setUserInfo(null);
+    setIsDropdownOpen(false);
+    router.push('/');
   };
 
   return (
@@ -52,18 +79,41 @@ export default function Header() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Link
-              href="/login"
-              className="px-4 py-2 text-gray-600 hover:text-gray-900"
-            >
-              登录
-            </Link>
-            <Link
-              href="/register"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              注册
-            </Link>
+            {userInfo ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  <span className="text-gray-800">{userInfo.email}</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''} cursor-pointer`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
+                    >
+                      退出登录
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                登录/注册
+              </Link>
+            )}
           </div>
         </div>
       </nav>

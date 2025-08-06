@@ -1,5 +1,4 @@
-import Link from "next/link";
-import Header, { NAV_ITEMS } from "./components/Header";
+import Header from "./components/Header";
 
 // 为了SEO优化，我们使用 metadata
 export const metadata = {

@@ -31,4 +31,6 @@ export interface Article {
   publishAt: string;
   createAt: string;
   updateAt: string;
+  points: number;
+  needVip: boolean;
 }

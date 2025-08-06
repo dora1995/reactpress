@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { SettingService } from '../setting/setting.service';
-import { sendEmail } from './mail.util';
+import { sendEmail } from '../../utils/sms';
 import { SMTP } from './smtp.entity';
 
 @Injectable()
@@ -11,30 +11,17 @@ export class SMTPService {
   constructor(
     @InjectRepository(SMTP)
     private readonly smtpRepository: Repository<SMTP>,
-    private readonly settingService: SettingService
   ) {}
 
   /**
    * 添加邮件，发送邮件并保存
    * @param SMTP
    */
-  async create(data: Partial<SMTP>): Promise<SMTP> {
-    const setting = await this.settingService.findAll(true);
-    const { smtpHost, smtpPort, smtpUser, smtpPass, smtpFromUser } = setting;
-    Object.assign(data, {
-      from: smtpFromUser,
-    });
-    await sendEmail(data, {
-      host: smtpHost,
-      port: smtpPort,
-      user: smtpUser,
-      pass: smtpPass,
-    }).catch(() => {
+  async create(data: Partial<SMTP>) {
+    const { to, subject, text } = data;
+    await sendEmail(to, subject, text).catch(() => {
       throw new HttpException('邮件发送失败', HttpStatus.BAD_REQUEST);
-    });
-    const newSMTP = await this.smtpRepository.create(data);
-    await this.smtpRepository.save(newSMTP);
-    return newSMTP;
+    }); 
   }
 
   /**
