@@ -24,7 +24,7 @@ async function sendEmailCode(email, code) {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log("邮件发送成功", info.messageId);
+    console.log("邮件发送成功", info.messageId, "验证码：", code);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error("邮件发送失败：", error);

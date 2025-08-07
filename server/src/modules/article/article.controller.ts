@@ -141,22 +141,50 @@ export class ArticleController {
       if (isMember || hasPurchased) {
         return article;
       }
+      const content = article.content
 
+      const jieduanStart = '<!-- 开始截断 -->'
+      const jieduanEnd = '<!-- 结束截断 -->'
+      const jieduanTag = content.includes(jieduanStart) && content.includes(jieduanEnd)
+      if (jieduanTag) {
+        const jieduanContentStart = article.content.split(jieduanStart)[0]
+        const jieduanContentEnd = article.content.split(jieduanEnd)[1]
+        // 截断中间的，然后把两端拼起来；这里要求前端给的数据截断后的内容是结构正确的
+        return {
+          ...article,
+          content: jieduanContentStart + jieduanContentEnd,
+          isLocked: true
+        };
+      }
       // 否则返回受限内容
       return {
         ...article,
-        content: '您未解锁该文章，请充值会员或购买',
+        content: '您未解锁该文章，请充值会员或使用积分购买',
         isLocked: true
       };
       
     } catch (e) {
       // 未登录用户返回受限内容
       const article = await this.articleService.findById(id, status);
+      const jieduanStart = '<!-- 开始截断 -->'
+      const jieduanEnd = '<!-- 结束截断 -->'
+      const content = article.content
+      // 截断中间的，然后把两端拼起来；这里要求前端给的数据截断后的内容是结构正确的
+      const jieduanTag = content.includes(jieduanStart) && content.includes(jieduanEnd)
+      if (jieduanTag) {
+        const jieduanContentStart = article.content.split(jieduanStart)[0]
+        const jieduanContentEnd = article.content.split(jieduanEnd)[1]
+        return {
+          ...article,
+          content: jieduanContentStart + jieduanContentEnd,
+          isLocked: true
+        };
+      }
       return {
         ...article,
-        content: '您未解锁该文章，请充值会员或购买',
+        content: '您未解锁该文章，请充值会员或使用积分购买',
         isLocked: true
-      };
+      }
     }
   }
 

@@ -28,7 +28,8 @@ async function getArticle(id: string): Promise<Article & { isLocked?: boolean }>
 
 // 动态生成元数据
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const article = await getArticle(params.id);
+  const { id } = await params;
+  const article = await getArticle(id);
   return {
     title: `${article.title} - 跨境鱼友圈`,
     description: article.summary,
@@ -36,7 +37,10 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 export default async function ArticlePage({ params }: { params: { id: string } }) {
-  const article = await getArticle(params.id);
+  // 确保在使用params.id之前先等待它
+  const { id } = await params;
+  const article = await getArticle(id);
+  console.log('article', article)
   
   return (
     <article className="container mx-auto px-4 py-8">
@@ -46,12 +50,12 @@ export default async function ArticlePage({ params }: { params: { id: string } }
           <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
           <div className="flex items-center text-sm text-gray-500 gap-4">
             <time dateTime={article.publishAt}>
-              {new Date(article.publishAt).toLocaleDateString()}
+              发布时间：{new Date(article.publishAt).toLocaleDateString()}
             </time>
-            <span>阅读 {article.views}</span>
+            <span>阅读：{article.views}</span>
           </div>
         </header>
-
+        <div dangerouslySetInnerHTML={{ __html: article.content }} />
         {/* 文章内容 */}
         <div className="prose max-w-none">
           {article.isLocked ? (
@@ -69,17 +73,15 @@ export default async function ArticlePage({ params }: { params: { id: string } }
                 >
                   开通会员
                 </a>
-                <div className="text-sm text-gray-500">或</div>
+                <span className="text-sm text-gray-500 mx-2">或</span>
                 <UnlockArticleButton
-                  articleId={params.id}
+                  articleId={id}
                   articleTitle={article.title}
                   points={article.points || 0}
                 />
               </div>
             </div>
-          ) : (
-            <div dangerouslySetInnerHTML={{ __html: article.content }} />
-          )}
+          ): null}
         </div>
       </div>
     </article>
