@@ -121,7 +121,10 @@ export class ArticleController {
       const tokenUser = this.jwtService.decode(token) as User;
       const userId = tokenUser.id;
       const user = await this.userService.findById(userId);
-      
+      console.log('user', user)
+
+      // 文章阅读量 +1
+      this.articleService.updateViewsById(id);
       // 如果是管理员，直接返回完整文章
       if (user.role === 'admin') {
         return this.articleService.findById(id, status, true);
@@ -129,27 +132,23 @@ export class ArticleController {
 
       // 获取文章信息
       const article = await this.articleService.findById(id, status);
-
       // 检查用户会员状态
       const membership = await this.userMembershipService.findActiveByUser(userId);
       const isMember = membership && membership.isActive;
-
       // 检查用户是否购买过该文章
       const hasPurchased = await this.articlePurchaseService.checkPurchased(userId, id);
-
       // 如果是会员或已解锁，返回完整文章
       if (isMember || hasPurchased) {
         return article;
       }
       const content = article.content
-
       const jieduanStart = '<!-- 开始截断 -->'
       const jieduanEnd = '<!-- 结束截断 -->'
       const jieduanTag = content.includes(jieduanStart) && content.includes(jieduanEnd)
       if (jieduanTag) {
         const jieduanContentStart = article.content.split(jieduanStart)[0]
         const jieduanContentEnd = article.content.split(jieduanEnd)[1]
-        // 截断中间的，然后把两端拼起来；这里要求前端给的数据截断后的内容是结构正确的
+        // 截断中间的，然后把两端拼起来；注意！要求管理后台给的数据截断后的内容是结构正确的，否则前端会报错
         return {
           ...article,
           content: jieduanContentStart + jieduanContentEnd,
@@ -189,32 +188,12 @@ export class ArticleController {
   }
 
   /**
-   * 校验文章密码
-   * @param id
-   * @param article
-   */
-  @Post(':id/checkPassword')
-  @HttpCode(HttpStatus.OK)
-  checkPassword(@Param('id') id, @Body() article) {
-    return this.articleService.checkPassword(id, article);
-  }
-
-  /**
    * 文章访问量 +1
    */
   @Post(':id/views')
   @HttpCode(HttpStatus.OK)
   updateViewsById(@Param('id') id) {
     return this.articleService.updateViewsById(id);
-  }
-
-  /**
-   * 文章访问量 +1
-   */
-  @Post(':id/likes')
-  @HttpCode(HttpStatus.OK)
-  updateLikesById(@Param('id') id, @Body('type') type) {
-    return this.articleService.updateLikesById(id, type);
   }
 
   /**
