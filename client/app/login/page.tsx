@@ -73,6 +73,7 @@ export default function LoginPage() {
       const res = await response.json();
       if (res.statusCode === 200) {
         const data = res.data;
+        document.cookie = `token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7天过期
         localStorage.setItem('token', data.token);
         localStorage.setItem('userInfo', JSON.stringify(data));
         router.push('/');

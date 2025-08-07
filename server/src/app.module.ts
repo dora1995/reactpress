@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Article } from './modules/article/article.entity';
+import { ArticlePurchase } from './modules/article/article-purchase.entity';
 // 文章模块
 import { ArticleModule } from './modules/article/article.module';
 // 鉴权模块
@@ -65,7 +66,8 @@ import { MembershipTransactionModule } from './modules/transaction/membership-tr
         type: 'mysql',
         entities: [
           User, File, Knowledge, Article, Category, Tag, Comment, Setting, SMTP, Page, View, Search,
-          MembershipType, UserMembership, UserPoints, PointsTransaction, MembershipTransaction
+          MembershipType, UserMembership, UserPoints, PointsTransaction, MembershipTransaction,
+          ArticlePurchase
         ],
         host: configService.get('DB_HOST', '0.0.0.0'),
         port: configService.get<number>('DB_PORT', 3306),

@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Category, Article } from '../types/article';
 import Header from '../components/Header';
+import Link from 'next/link';
 
 // 为了SEO优化
 export const metadata: Metadata = {
@@ -44,6 +45,11 @@ export default async function ArticlesPage({
   const categories = categoriesData;
   const articles = articlesData.data;
 
+  const handleArticleClick = (article: Article) => {
+    // 用新页面打开
+    window.open(`/articles/${article.id}`, '_blank');
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -81,31 +87,33 @@ export default async function ArticlesPage({
         {articles.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
             {articles.map((article) => (
-              <article
-                key={article.id}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col relative"
-              >
-                <div className="p-4 flex flex-col flex-1">
-                  <h2 className="text-lg font-semibold mb-3 line-clamp-2 hover:text-blue-600">
-                    <a href={`/articles/${article.id}`}>{article.title}</a>
-                  </h2>
-                  <p className="text-gray-600 text-sm line-clamp-4">
-                    {article.summary || '暂无描述'}
-                  </p>
-                  <div className="pt-4 flex items-center justify-between text-xs text-gray-500">
-                    <span>{new Date(article.publishAt).toLocaleDateString()}</span>
-                    <div className="flex items-center gap-3">
-                      <span>阅读 {article.views}</span>
+              <Link href={`/articles/${article.id}`} key={article.id}>
+                <article
+                  key={article.id}
+                  className="cursor-pointer bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col relative"
+                >
+                  <div className="p-4 flex flex-col flex-1">
+                    <h2 className="text-lg font-semibold mb-3 line-clamp-2 hover:text-blue-600">
+                      {article.title}
+                    </h2>
+                    <p className="text-gray-600 text-sm line-clamp-4">
+                      {article.summary || '暂无描述'}
+                    </p>
+                    <div className="pt-4 flex items-center justify-between text-xs text-gray-500">
+                      <span>{new Date(article.publishAt).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-3">
+                        <span>阅读 {article.views}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                {article.needVip && (
-                  <div className="text-white absolute top-0 -right-2 bg-yellow-600 rounded-full px-2 py-1 text-xs">会员专享</div>
-                )}
-                {article.points > 0 && (
-                  <div className="text-white absolute top-0 -right-2 bg-green-600 rounded-full px-2 py-1 text-xs">{article.points} 积分</div>
-                )}
-              </article>
+                  {article.needVip && (
+                    <div className="text-white absolute top-0 -right-2 bg-yellow-600 rounded-full px-2 py-1 text-xs">会员专享</div>
+                  )}
+                  {article.points > 0 && (
+                    <div className="text-white absolute top-0 -right-2 bg-green-600 rounded-full px-2 py-1 text-xs">{article.points} 积分</div>
+                  )}
+                </article>
+              </Link>
             ))}
           </div>
         ) : (

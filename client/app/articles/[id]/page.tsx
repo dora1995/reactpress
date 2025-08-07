@@ -1,38 +1,42 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Article } from '../../types/article';
+import { cookies } from 'next/headers';
 
 // 获取文章详情
-async function getArticle(id: string): Promise<Article> {
+async function getArticle(id: string): Promise<Article & { isLocked?: boolean }> {
+  // 从cookies中获取token
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token')?.value;
+  console.log('token', token)
   const res = await fetch(`${process.env.API_URL}/api/article/${id}?status=publish`, {
-    next: { revalidate: 3600 }, // 1小时缓存
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+    },
+    // 禁用缓存以确保每次都获取最新的文章状态
+    cache: 'no-store',
   });
   
   if (!res.ok) {
     notFound();
   }
   
-  return res.json();
+  const _res = await res.json();
+  return _res.data;
 }
 
 // 动态生成元数据
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const article = await getArticle(params.id);
-  
   return {
     title: `${article.title} - 跨境鱼友圈`,
     description: article.summary,
-    keywords: [
-      '跨境电商',
-      article.category.name,
-      ...article.tags.map(tag => tag.name)
-    ],
   };
 }
 
 export default async function ArticlePage({ params }: { params: { id: string } }) {
   const article = await getArticle(params.id);
-
+  
   return (
     <div className="min-h-screen pt-16 bg-gray-50">
       <article className="container mx-auto px-4 py-8">
@@ -45,29 +49,38 @@ export default async function ArticlePage({ params }: { params: { id: string } }
                 {new Date(article.publishAt).toLocaleDateString()}
               </time>
               <span>阅读 {article.views}</span>
-              <span>点赞 {article.likes}</span>
-              <span className="text-blue-600">#{article.category.name}</span>
-              {article.tags.map((tag) => (
-                <span key={tag.id} className="text-gray-500">
-                  #{tag.name}
-                </span>
-              ))}
             </div>
           </header>
 
-          {/* 文章目录 */}
-          {article.toc && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-8">
-              <h2 className="text-lg font-semibold mb-2">目录</h2>
-              <div dangerouslySetInnerHTML={{ __html: article.toc }} />
-            </div>
-          )}
-
           {/* 文章内容 */}
-          <div 
-            className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.html }}
-          />
+          <div className="prose max-w-none">
+            {article.isLocked ? (
+              <div className="my-8 p-6 bg-gray-50 rounded-lg text-center">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                  该文章需要解锁才能阅读完整内容
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  您可以通过以下方式解锁文章：
+                </p>
+                <div className="space-y-4">
+                  <a
+                    href="/membership"
+                    className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    开通会员
+                  </a>
+                  <div className="text-sm text-gray-500">或</div>
+                  <a
+                    className="px-6 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                  >
+                    使用积分解锁
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div dangerouslySetInnerHTML={{ __html: article.content }} />
+            )}
+          </div>
         </div>
       </article>
     </div>

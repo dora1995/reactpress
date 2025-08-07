@@ -20,9 +20,10 @@ interface UserInfo {
 export const NAV_ITEMS: NavItem[] = [
   { title: '首页', href: '/' },
   { title: '经验文章', href: '/articles' },
+  { title: '会员开通', href: '/membership' },
+  { title: '积分充值', href: '/points' },
   // { title: '提效工具', href: '/tools' },
   // { title: '关于我们', href: '/about' },
-  // { title: '会员介绍', href: '/membership' },
 ] as const;
 
 export default function Header() {

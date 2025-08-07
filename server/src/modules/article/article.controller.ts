@@ -21,6 +21,9 @@ import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { Article } from './article.entity';
 import { ArticleService } from './article.service';
+import { ArticlePurchaseService } from './article-purchase.service';
+import { UserMembershipService } from '../membership/user-membership.service';
+import { UserPointsService } from '../points/user-points.service';
 
 @ApiTags('Article')
 @Controller('article')
@@ -28,9 +31,11 @@ import { ArticleService } from './article.service';
 export class ArticleController {
   constructor(
     private readonly articleService: ArticleService,
-
     private readonly jwtService: JwtService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly userMembershipService: UserMembershipService,
+    private readonly userPointsService: UserPointsService,
+    private readonly articlePurchaseService: ArticlePurchaseService
   ) {}
 
   /**
@@ -115,11 +120,43 @@ export class ArticleController {
     try {
       const tokenUser = this.jwtService.decode(token) as User;
       const userId = tokenUser.id;
-      const exist = await this.userService.findById(userId);
-      const isAdmin = userId && exist.role === 'admin';
-      return this.articleService.findById(id, status, isAdmin);
+      const user = await this.userService.findById(userId);
+      
+      // 如果是管理员，直接返回完整文章
+      if (user.role === 'admin') {
+        return this.articleService.findById(id, status, true);
+      }
+
+      // 获取文章信息
+      const article = await this.articleService.findById(id, status);
+
+      // 检查用户会员状态
+      const membership = await this.userMembershipService.findActiveByUser(userId);
+      const isMember = membership && membership.isActive;
+
+      // 检查用户是否购买过该文章
+      const hasPurchased = await this.articlePurchaseService.checkPurchased(userId, id);
+
+      // 如果是会员或已解锁，返回完整文章
+      if (isMember || hasPurchased) {
+        return article;
+      }
+
+      // 否则返回受限内容
+      return {
+        ...article,
+        content: '您未解锁该文章，请充值会员或购买',
+        isLocked: true
+      };
+      
     } catch (e) {
-      return this.articleService.findById(id, status);
+      // 未登录用户返回受限内容
+      const article = await this.articleService.findById(id, status);
+      return {
+        ...article,
+        content: '您未解锁该文章，请充值会员或购买',
+        isLocked: true
+      };
     }
   }
 
@@ -174,5 +211,37 @@ export class ArticleController {
   @UseGuards(JwtAuthGuard)
   deleteById(@Param('id') id) {
     return this.articleService.deleteById(id);
+  }
+
+  /**
+   * 使用积分购买文章
+   */
+  @Post(':id/purchase')
+  @UseGuards(JwtAuthGuard)
+  async purchaseArticle(
+    @Request() req,
+    @Param('id') articleId: string,
+    @Body('points') points: number,
+  ) {
+    const token = req.headers.authorization.split(' ').pop();
+    const tokenUser = this.jwtService.decode(token) as User;
+    
+    try {
+      const purchase = await this.articlePurchaseService.purchaseWithPoints(
+        tokenUser.id,
+        articleId,
+        points
+      );
+      return {
+        success: true,
+        message: '购买成功',
+        data: purchase
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message
+      };
+    }
   }
 }
