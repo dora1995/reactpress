@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react';
 import { MembershipType } from '../types/membership';
 import Header from '../components/Header';
+import PaymentModal from '../components/PaymentModal';
 
 export default function MembershipPage() {
   const [membershipTypes, setMembershipTypes] = useState<MembershipType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
     fetchMembershipTypes();
@@ -31,6 +35,40 @@ export default function MembershipPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePurchase = async (typeId: string) => {
+    try {
+      const response = await fetch(`${process.env.API_URL}/api/recharge/membership`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planType: typeId,
+          payType: 'wechat', // 默认使用微信支付
+        }),
+      });
+
+      const data = await response.json();
+      if (data.code === 200) {
+        setCurrentOrderId(data.data.orderId);
+        setQrCodeUrl(data.data.qrCode);
+        setIsPaymentModalOpen(true);
+      } else {
+        alert('创建订单失败，请稍后再试');
+      }
+    } catch (error) {
+      console.error('创建订单失败:', error);
+      alert('创建订单失败，请稍后再试');
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    // 刷新会员状态或其他需要更新的数据
+    alert('支付成功！');
+    // 可以选择刷新页面或更新用户状态
+    window.location.reload();
   };
 
 
@@ -95,10 +133,7 @@ export default function MembershipPage() {
                 </div>
                 <div className="p-6 bg-gray-50">
                   <button
-                    onClick={() => {
-                      // TODO: 实现购买逻辑
-                      console.log('购买会员:', type.id);
-                    }}
+                    onClick={() => handlePurchase(type.id)}
                     className="w-full bg-blue-600 text-white rounded-md py-3 font-semibold hover:bg-blue-700 transition-colors duration-300 cursor-pointer"
                   >
                     立即开通
@@ -109,6 +144,13 @@ export default function MembershipPage() {
           </div>
         </div>
       </div>
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        qrCode={qrCodeUrl}
+        orderId={currentOrderId}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </>
   );
 }

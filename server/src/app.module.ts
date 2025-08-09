@@ -55,6 +55,10 @@ import { UserPointsModule } from './modules/points/user-points.module';
 // 交易模块
 import { MembershipTransaction } from './modules/transaction/membership-transaction.entity';
 import { MembershipTransactionModule } from './modules/transaction/membership-transaction.module';
+// 充值模块
+import { RechargeModule } from './modules/recharge/recharge.module';
+// 支付模块
+import { Payment } from './modules/payment/payment.entity';
 
 @Module({
   imports: [
@@ -67,7 +71,7 @@ import { MembershipTransactionModule } from './modules/transaction/membership-tr
         entities: [
           User, File, Knowledge, Article, Category, Tag, Comment, Setting, SMTP, Page, View, Search,
           MembershipType, UserMembership, UserPoints, PointsTransaction, MembershipTransaction,
-          ArticlePurchase
+          ArticlePurchase, Payment
         ],
         host: configService.get('DB_HOST', '0.0.0.0'),
         port: configService.get<number>('DB_PORT', 3306),
@@ -96,6 +100,7 @@ import { MembershipTransactionModule } from './modules/transaction/membership-tr
     UserMembershipModule,
     UserPointsModule,
     MembershipTransactionModule,
+    RechargeModule,
   ],
   controllers: [],
   providers: [],
